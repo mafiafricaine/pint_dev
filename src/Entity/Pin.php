@@ -4,9 +4,12 @@ namespace App\Entity;
 
 use App\Repository\PinRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=PinRepository::class)
+ * @ORM\Table(name="pin")
+ * @ORM\HasLifecycleCallbacks 
  */
 class Pin
 {
@@ -19,18 +22,27 @@ class Pin
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank(message="Votre titre doit avoir un nom")
+     * @Assert\Length(min=3, minMessage="Vous devez avoir un titre de minimium 3 caractères")
      */
     private $title;
 
     /**
      * @ORM\Column(type="text")
+     * @Assert\NotBlank(message="Votre description doit avoir un texte")
+     * @Assert\Length(min=10, minMessage="Vous devez avoir une description de minimium 10 caractères")
      */
     private $description;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime_immutable", options={"default": "CURRENT_TIMESTAMP"})
      */
     private $createdAt;
+
+    /**
+     * @ORM\Column(type="datetime", options={"default": "CURRENT_TIMESTAMP"})
+     */
+    private $updatedAt;
 
     public function getId(): ?int
     {
@@ -42,7 +54,7 @@ class Pin
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
 
@@ -54,7 +66,7 @@ class Pin
         return $this->description;
     }
 
-    public function setDescription(string $description): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
 
@@ -72,4 +84,28 @@ class Pin
 
         return $this;
     }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    /**
+     * @ORM\PrePersist   //cette methode on veut l'appeler avant un persist (avant creation d'un pin on appel)
+     * @ORM\PreUpdate    //cette methode on veut l'appeler avant un update (avant la modification d'un pin)
+    */
+          public function updateTimestamps(){
+            if ($this->getCreatedAt()=== null){
+                    $this->setCreatedAt(new \DateTimeImmutable); //DateTimeImmutable, cest qu'on ne peut pas modifier
+            }
+            $this->setUpdatedAt(new \DateTimeImmutable);
+          }
+
 }
