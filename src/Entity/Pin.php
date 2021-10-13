@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\Timestampable;
 use App\Repository\PinRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -13,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Pin
 {
+    use Timestampable;
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -34,20 +36,18 @@ class Pin
      */
     private $description;
 
-    /**
-     * @ORM\Column(type="datetime_immutable", options={"default": "CURRENT_TIMESTAMP"})
-     */
-    private $createdAt;
-
-    /**
-     * @ORM\Column(type="datetime", options={"default": "CURRENT_TIMESTAMP"})
-     */
-    private $updatedAt;
+   
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $imageName;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="pins")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $user;
 
     public function getId(): ?int
     {
@@ -78,40 +78,6 @@ class Pin
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    /**
-     * @ORM\PrePersist   //cette methode on veut l'appeler avant un persist (avant creation d'un pin on appel)
-     * @ORM\PreUpdate    //cette methode on veut l'appeler avant un update (avant la modification d'un pin)
-    */
-          public function updateTimestamps(){
-            if ($this->getCreatedAt()=== null){
-                    $this->setCreatedAt(new \DateTimeImmutable); //DateTimeImmutable, cest qu'on ne peut pas modifier
-            }
-            $this->setUpdatedAt(new \DateTimeImmutable);
-          }
 
           public function getImageName(): ?string
           {
@@ -121,6 +87,19 @@ class Pin
           public function setImageName(?string $imageName): self
           {
               $this->imageName = $imageName;
+
+              return $this;
+          }
+
+          public function getUser(): ?User
+          {
+              
+              return $this->user;
+          }
+
+          public function setUser(?User $user): self
+          {
+              $this->user = $user;
 
               return $this;
           }
